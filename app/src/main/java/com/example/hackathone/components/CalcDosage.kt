@@ -5,7 +5,7 @@ import android.util.Log
 fun calcDosage(
     tone: Int,
     gender: Int,
-    time: Long,
+    time: Float,
     age: Int
 ): Double {
     val absorptionCoefficients = mapOf(
@@ -28,8 +28,15 @@ fun calcDosage(
     )
 
     val ageCoeffValue = ageCoeff[if (age < 60) 1 else 2] ?: return 0.0
+    if (absorptionCoefficients[tone]!! == null) {
+        Log.d("absorptionCoefficients[tone]!!", "null")
+    } else if (ageCoeffValue == null) {
+        Log.d("ageCoeffValue", "null")
+    } else if (time == null) {
+        Log.d("time", "null")
+    }
 
-    Log.d("calcs", "${absorptionCoefficients[tone]!!} .. ${genders[gender]!!} .. $time .. $ageCoeffValue")
+    // absorptionCoefficients[tone]!! * genders[gender]!! * 15 * 0.6 * time * ageCoeffValue * 0.1
 
-    return absorptionCoefficients[tone]!! * genders[gender]!! * 15 * 0.6 * time * ageCoeffValue * 0.1
+    return absorptionCoefficients[tone]!! * 15 * 0.6 * time * ageCoeffValue * 0.1
 }

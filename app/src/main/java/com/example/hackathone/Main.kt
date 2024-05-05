@@ -67,7 +67,7 @@ class Main : ComponentActivity() {
         "", ""
     )
     private val dosage = arrayOf(
-        1, 2
+        2000
     )
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -131,6 +131,8 @@ class Main : ComponentActivity() {
 
     @Composable
     fun SettingsScreen() {
+        val genderOptions = listOf("Мужской", "Женский")
+        var selectedGender by remember { mutableStateOf("") }
         Column (
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -139,6 +141,55 @@ class Main : ComponentActivity() {
         ){
             Text(text = "Выберите свой тон кожи")
             DialogTone()
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ){
+                Text(
+                    "Возраст",
+                    Modifier.padding(16.dp)
+                )
+                NameTextField(value = values[0], onValueChange = { values[0] = it })
+            }
+            Column {
+                genderOptions.forEach { gender ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selectedGender == gender,
+                            onClick = {
+                                selectedGender = gender
+                                values[1] = when (gender) {
+                                    "Женский" -> "2"
+                                    "Мужской" -> "1"
+                                    else -> "0"
+                                }
+                            }
+                        )
+                        Text(
+                            text = gender,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+                }
+            }
+            MainButton(func = {
+                if (
+                    (values[0] != "" || values[1] != "" || choose != 0) ||
+                    (values[0] != "" && values[1] != "" && choose != 0)
+                    ) {
+                    Toast.makeText(this@Main, "Done", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@Main, "Заполните все данные", Toast.LENGTH_SHORT).show()
+                }
+            }) {
+                Text(text = "Confirm")
+            }
         }
     }
 
@@ -228,7 +279,7 @@ class Main : ComponentActivity() {
                             calcDosage(
                                 tone = choose,
                                 gender = values[0].toInt(),
-                                time = time.longValue,
+                                time = time.longValue / 1000F,
                                 age = values[1].toInt()))
                         Log.d(time.longValue.toString(),
                             ratioSynthesis.toString()
@@ -289,57 +340,6 @@ class Main : ComponentActivity() {
 
     @Composable
     fun ProfileScreen() {
-        val genderOptions = listOf("Мужской", "Женский")
-        var selectedGender by remember { mutableStateOf("") }
 
-        Column (
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ){
-
-            Row (
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ){
-                Text(
-                    "Возраст",
-                    Modifier.padding(16.dp)
-                )
-                NameTextField(value = values[0], onValueChange = { values[0] = it })
-            }
-            Column {
-                genderOptions.forEach { gender ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = selectedGender == gender,
-                            onClick = {
-                                selectedGender = gender
-                                values[1] = when (gender) {
-                                    "Женский" -> "2"
-                                    "Мужской" -> "1"
-                                    else -> "0"
-                                }
-                            }
-                        )
-                        Text(
-                            text = gender,
-                            modifier = Modifier.padding(start = 16.dp)
-                        )
-                    }
-                }
-            }
-            MainButton(func = {
-                Toast.makeText(this@Main, "Done", Toast.LENGTH_SHORT).show()
-            }) {
-                Text(text = "Confirm")
-            }
-        }
     }
 }
