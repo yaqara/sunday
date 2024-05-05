@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -99,7 +101,6 @@ class Main : ComponentActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
                 .background(Color(0xFFFFD66E))
                 .clip(RoundedCornerShape(16.dp)),
             verticalAlignment = Alignment.Bottom,
@@ -168,8 +169,8 @@ class Main : ComponentActivity() {
                             onClick = {
                                 selectedGender = gender
                                 values[1] = when (gender) {
-                                    "Женский" -> "2"
                                     "Мужской" -> "1"
+                                    "Женский" -> "2"
                                     else -> "0"
                                 }
                             }
@@ -336,26 +337,35 @@ class Main : ComponentActivity() {
                     horizontalArrangement = Arrangement.Center
                 ){
                     CircleButton({
-                        sensorManager.registerListener(
-                            object : SensorEventListener {
-                                override fun onSensorChanged(event: SensorEvent?) {
-                                    if (event != null && event.sensor.type == Sensor.TYPE_LIGHT) {
-                                        lightValue.floatValue = event.values[0]
+                        if (values[0] != "" && values[1] != "" && choose != 0) {
+                            sensorManager.registerListener(
+                                object : SensorEventListener {
+                                    override fun onSensorChanged(event: SensorEvent?) {
+                                        if (event != null && event.sensor.type == Sensor.TYPE_LIGHT) {
+                                            lightValue.floatValue = event.values[0]
+                                        }
                                     }
-                                }
-                                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                            },
-                            lightSensor,
-                            SensorManager.SENSOR_DELAY_NORMAL
-                        )
-                        med.floatValue = calcMed(choose, lightValue.floatValue)
-                        Log.d(
-                            "MED",
-                            "$choose // ${lightValue.floatValue}"
-                        )
-                        running.value = !running.value
-                        if (running.value) {
-                            timer.run()
+
+                                    override fun onAccuracyChanged(
+                                        sensor: Sensor?,
+                                        accuracy: Int
+                                    ) {
+                                    }
+                                },
+                                lightSensor,
+                                SensorManager.SENSOR_DELAY_NORMAL
+                            )
+                            med.floatValue = calcMed(choose, lightValue.floatValue)
+                            Log.d(
+                                "MED",
+                                "$choose // ${lightValue.floatValue}"
+                            )
+                            running.value = !running.value
+                            if (running.value) {
+                                timer.run()
+                            }
+                        } else {
+                            Toast.makeText(this@Main, "Заполните данные!", Toast.LENGTH_SHORT).show()
                         }
                     }) {
                         Text(
