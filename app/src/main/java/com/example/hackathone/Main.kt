@@ -17,12 +17,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Home
@@ -43,19 +43,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import calcMed
 import com.example.hackathone.components.CircleButton
 import com.example.hackathone.components.MainButton
 import com.example.hackathone.components.NameTextField
-import com.example.hackathone.components.calcDosage
+import com.example.hackathone.calcs.calcDosage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -93,7 +96,7 @@ class Main : ComponentActivity() {
             composable("profile") { ProfileScreen() }
         }
     }
-    
+
     @Composable
     fun NavMenu(navController: NavHostController) {
         Row(
@@ -109,9 +112,10 @@ class Main : ComponentActivity() {
                 route = "settings"
             )
             NavEl(
-                iconUrl = Icons.Rounded.Home, 
-                navController = navController, 
-                route = "home")
+                iconUrl = Icons.Rounded.Home,
+                navController = navController,
+                route = "home"
+            )
             NavEl(
                 iconUrl = Icons.Rounded.AccountCircle,
                 navController = navController,
@@ -133,19 +137,19 @@ class Main : ComponentActivity() {
     fun SettingsScreen() {
         val genderOptions = listOf("Мужской", "Женский")
         var selectedGender by remember { mutableStateOf("") }
-        Column (
+        Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
-        ){
+        ) {
             Text(text = "Выберите свой тон кожи")
             DialogTone()
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-            ){
+            ) {
                 Text(
                     "Возраст",
                     Modifier.padding(16.dp)
@@ -182,7 +186,7 @@ class Main : ComponentActivity() {
                 if (
                     (values[0] != "" || values[1] != "" || choose != 0) ||
                     (values[0] != "" && values[1] != "" && choose != 0)
-                    ) {
+                ) {
                     Toast.makeText(this@Main, "Done", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this@Main, "Заполните все данные", Toast.LENGTH_SHORT).show()
@@ -242,7 +246,13 @@ class Main : ComponentActivity() {
                                             0
                                         }
                                     }
-                                    Toast.makeText(this@Main, "Вы выбрали $choose тон", Toast.LENGTH_SHORT).show()
+                                    Toast
+                                        .makeText(
+                                            this@Main,
+                                            "Вы выбрали $choose тон",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
                                 }
                                 .padding(vertical = 4.dp)
                         )
@@ -267,6 +277,7 @@ class Main : ComponentActivity() {
         val time = remember { mutableLongStateOf(0L) }
         val coroutineScope = rememberCoroutineScope()
         val vitamin = remember { mutableLongStateOf(0L) }
+        val med = remember { mutableFloatStateOf(0F) }
 
         val timer = Runnable {
             if (running.value) {
@@ -280,51 +291,86 @@ class Main : ComponentActivity() {
                                 tone = choose,
                                 gender = values[0].toInt(),
                                 time = time.longValue / 1000F,
-                                age = values[1].toInt()))
-                        Log.d(time.longValue.toString(),
-                            ratioSynthesis.toString()
+                                age = values[1].toInt()
+                            )
                         )
+
                     }
                 }
             }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9F),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Время - ${formatTime(time.longValue)}" +
-                        " - ${lightValue.floatValue}"
-            )
-            Text(text = "Витамин D - ${vitamin.longValue} нг/мл")
-            CircleButton({
-                sensorManager.registerListener(
-                    object : SensorEventListener {
-                        override fun onSensorChanged(event: SensorEvent?) {
-                            if (event != null && event.sensor.type == Sensor.TYPE_LIGHT) {
-                                lightValue.floatValue = event.values[0]
-                            }
-                        }
 
-                        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
-                    },
-                    lightSensor,
-                    SensorManager.SENSOR_DELAY_NORMAL
-                )
-                running.value = !running.value
-                if (running.value) {
-                    timer.run()
-                }
-            }) {
-                Text(if (running.value) "Stop" else "Start")
-            }
-            CircleButton(
-                { time.longValue = 0 ; vitamin.longValue = 0  }
+        Box (
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(Color(0xFFFFD66E))
             ) {
-                Text(text = "Reset")
+                Column(
+                    modifier = Modifier
+                        .padding(start = 5.dp, top = 16.dp)
+                ) {
+                    Text(
+                        fontSize = 30.sp,
+                        text = "Мин. MED - ${"%.2f".format(med.floatValue)} мин."
+                    )
+                    Text(
+                        fontSize = 30.sp,
+                        text = "Время - ${formatTime(time.longValue)}" +
+                            "- ${lightValue.floatValue}"
+                    )
+                    Text(
+                        fontSize = 30.sp,
+                        text = "Вит. D - ${vitamin.longValue} нг/мл"
+                    )
+                }
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ){
+                    CircleButton({
+                        sensorManager.registerListener(
+                            object : SensorEventListener {
+                                override fun onSensorChanged(event: SensorEvent?) {
+                                    if (event != null && event.sensor.type == Sensor.TYPE_LIGHT) {
+                                        lightValue.floatValue = event.values[0]
+                                    }
+                                }
+                                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+                            },
+                            lightSensor,
+                            SensorManager.SENSOR_DELAY_NORMAL
+                        )
+                        med.floatValue = calcMed(choose, lightValue.floatValue)
+                        Log.d(
+                            "MED",
+                            "$choose // ${lightValue.floatValue}"
+                        )
+                        running.value = !running.value
+                        if (running.value) {
+                            timer.run()
+                        }
+                    }) {
+                        Text(
+                            text = if (running.value) "Stop" else "Start"
+                        )
+                    }
+                    CircleButton(
+                        { time.longValue = 0; vitamin.longValue = 0; med.floatValue = 0F }
+                    ) {
+                        Text(
+                            text = "Reset"
+                        )
+                    }
+                }
             }
         }
     }
