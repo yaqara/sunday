@@ -69,9 +69,6 @@ class Main : ComponentActivity() {
     private val values = arrayOf(
         "", ""
     )
-    private val dosage = arrayOf(
-        2000
-    )
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,8 +98,10 @@ class Main : ComponentActivity() {
     fun NavMenu(navController: NavHostController) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(Color(0xFFFFD66E))
+                .clip(RoundedCornerShape(16.dp)),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
